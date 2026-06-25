@@ -1,0 +1,323 @@
+import customtkinter as ctk
+import json
+import os
+import random
+from gtts import gTTS
+import pygame
+
+# 1. 테마 및 환경 설정
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+FILE_NAME = os.path.join(BASE_DIR, "words.json")
+
+class VocaApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+
+        # pygame 오디오 엔진 초기화
+        pygame.mixer.init()
+
+        # 2. 윈도우 기본 설정
+        self.title("My English Vocabulary App - Ultimate Edition")
+        self.geometry("1100x650")
+
+        # 그리드 비율 설정 (왼쪽 사이드바 고정, 오른쪽 콘텐트 확장)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # 데이터 로드 및 상태 변수
+        self.voca_dict = self.load_data()
+        self.editing_target = None 
+        self.quiz_correct_answer = "" # 현재 퀴즈의 정답을 저장할 변수
+
+        # ==========================================
+        # 3. 사이드바 영역 (메뉴 내비게이션)
+        # ==========================================
+        self.sidebar_frame = ctk.CTkFrame(self, width=200, corner_radius=0)
+        self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
+        
+        self.logo_label = ctk.CTkLabel(self.sidebar_frame, text="VOCA APP", font=ctk.CTkFont(size=24, weight="bold"))
+        self.logo_label.pack(pady=30, padx=20)
+
+        # 메뉴 버튼 1: 단어장 관리
+        self.btn_menu_list = ctk.CTkButton(self.sidebar_frame, text="📖 단어장 관리", font=ctk.CTkFont(size=16),
+                                            fg_color="transparent", text_color="#f8fafc", hover_color="#1e293b",
+                                            command=self.show_list_page, anchor="w", height=40)
+        self.btn_menu_list.pack(fill="x", padx=10, pady=5)
+
+        # 메뉴 버튼 2: 미니 퀴즈
+        self.btn_menu_quiz = ctk.CTkButton(self.sidebar_frame, text="🧩 미니 퀴즈", font=ctk.CTkFont(size=16),
+                                            fg_color="transparent", text_color="#f8fafc", hover_color="#1e293b",
+                                            command=self.show_quiz_page, anchor="w", height=40)
+        self.btn_menu_quiz.pack(fill="x", padx=10, pady=5)
+
+        # ==========================================
+        # 4. 컨테이너 영역 (화면 전환을 위한 베이스)
+        # ==========================================
+        self.container = ctk.CTkFrame(self, fg_color="transparent")
+        self.container.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
+
+        # 두 개의 독립된 프레임(화면) 사전 구축
+        self.list_page_frame = ctk.CTkFrame(self.container, fg_color="transparent")
+        self.quiz_page_frame = ctk.CTkFrame(self.container, fg_color="transparent")
+
+        # 초기 셋업 진행
+        self.setup_list_page()
+        self.setup_quiz_page()
+
+        # 첫 화면으로 단어장 관리 화면 표시
+        self.show_list_page()
+
+    # ==========================================
+    # [화면 1] 단어장 관리 UI 구성 및 생성
+    # ==========================================
+    def setup_list_page(self):
+        self.list_page_frame.grid_rowconfigure(1, weight=1)
+        self.list_page_frame.grid_columnconfigure(0, weight=1)
+
+        # 상단 패널
+        top_panel = ctk.CTkFrame(self.list_page_frame, fg_color="transparent")
+        top_panel.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
+        
+        # 단어 입력 프레임
+        self.input_frame = ctk.CTkFrame(top_panel, corner_radius=10)
+        self.input_frame.pack(fill="x", pady=5)
+        
+        self.entry_eng = ctk.CTkEntry(self.input_frame, placeholder_text="영어 단어 입력", width=180)
+        self.entry_eng.pack(side="left", padx=10, pady=10)
+        
+        self.entry_kor = ctk.CTkEntry(self.input_frame, placeholder_text="한국어 뜻 입력", width=180)
+        self.entry_kor.pack(side="left", padx=10, pady=10)
+        
+        self.btn_submit = ctk.CTkButton(self.input_frame, text="추가하기", command=self.handle_submit, width=90)
+        self.btn_submit.pack(side="left", padx=10, pady=10)
+
+        self.btn_cancel = ctk.CTkButton(self.input_frame, text="취소", fg_color="#64748b", hover_color="#475569", command=self.cancel_edit, width=50)
+
+        self.status_label = ctk.CTkLabel(self.input_frame, text="", text_color="#38bdf8")
+        self.status_label.pack(side="left", padx=15)
+
+        # 검색 프레임
+        search_frame = ctk.CTkFrame(top_panel, corner_radius=10)
+        search_frame.pack(fill="x", pady=5)
+        
+        self.entry_search = ctk.CTkEntry(search_frame, placeholder_text="🔍 검색할 단어나 뜻을 입력하세요...", width=400)
+        self.entry_search.pack(fill="x", padx=15, pady=10)
+        self.entry_search.bind("<KeyRelease>", self.filter_words)
+
+        # 스크롤 단어 목록 프레임
+        self.list_frame = ctk.CTkScrollableFrame(self.list_page_frame, label_text="나의 단어장 목록")
+        self.list_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
+        
+        self.update_word_list()
+
+    # ==========================================
+    # [화면 2] 미니 퀴즈 UI 구성 및 생성 (새로 추가됨 🧩)
+    # ==========================================
+    def setup_quiz_page(self):
+        # 중앙 배치를 위해 그리드 가중치 부여
+        self.quiz_page_frame.grid_columnconfigure(0, weight=1)
+        
+        # 대형 안내 타이틀
+        quiz_title = ctk.CTkLabel(self.quiz_page_frame, text="🧠 미니 단어 퀴즈", font=ctk.CTkFont(size=28, weight="bold"))
+        quiz_title.pack(pady=30)
+
+        # 퀴즈 전용 카드 프레임
+        self.quiz_card = ctk.CTkFrame(self.quiz_page_frame, width=500, height=350, corner_radius=15)
+        self.quiz_card.pack(pady=10, padx=50, fill="both", expand=True)
+
+        # 문제 출제 레이블
+        self.lbl_question = ctk.CTkLabel(self.quiz_card, text="문제를 불러오는 중입니다...", font=ctk.CTkFont(size=24, weight="bold"), text_color="#38bdf8")
+        self.lbl_question.pack(pady=40)
+
+        # 사용자 정답 입력창
+        self.entry_quiz_ans = ctk.CTkEntry(self.quiz_card, placeholder_text="한국어 뜻을 입력하고 엔터를 누르세요", width=350, font=ctk.CTkFont(size=16))
+        self.entry_quiz_ans.pack(pady=10)
+        self.entry_quiz_ans.bind("<Return>", lambda e: self.check_quiz_answer()) # 엔터키 입력 시 정답 검사
+
+        # 정답 확인 버튼 및 다음 문제 버튼
+        btn_frame = ctk.CTkFrame(self.quiz_card, fg_color="transparent")
+        btn_frame.pack(pady=20)
+
+        self.btn_quiz_check = ctk.CTkButton(btn_frame, text="정답 확인", width=120, command=self.check_quiz_answer)
+        self.btn_quiz_check.pack(side="left", padx=10)
+
+        self.btn_quiz_next = ctk.CTkButton(btn_frame, text="다음 문제 ➡️", width=120, fg_color="#10b981", hover_color="#059669", command=self.next_quiz)
+        self.btn_quiz_next.pack(side="left", padx=10)
+
+        # 결과 및 피드백 메시지 레이블
+        self.lbl_quiz_feedback = ctk.CTkLabel(self.quiz_card, text="", font=ctk.CTkFont(size=18, weight="bold"))
+        self.lbl_quiz_feedback.pack(pady=20)
+
+    # ==========================================
+    # 5. 내비게이션 및 화면 전환 제어 함수
+    # ==========================================
+    def show_list_page(self):
+        self.quiz_page_frame.grid_forget() # 퀴즈 화면 숨기기
+        self.list_page_frame.grid(row=0, column=0, sticky="nsew") # 리스트 화면 띄우기
+        # 메뉴 하이라이트 스타일 제어
+        self.btn_menu_list.configure(fg_color="#1e293b", text_color="#38bdf8")
+        self.btn_menu_quiz.configure(fg_color="transparent", text_color="#f8fafc")
+
+    def show_quiz_page(self):
+        self.list_page_frame.grid_forget() # 리스트 화면 숨기기
+        self.quiz_page_frame.grid(row=0, column=0, sticky="nsew") # 퀴즈 화면 띄우기
+        # 메뉴 하이라이트 스타일 제어
+        self.btn_menu_quiz.configure(fg_color="#1e293b", text_color="#38bdf8")
+        self.btn_menu_list.configure(fg_color="transparent", text_color="#f8fafc")
+        # 페이지가 열릴 때 첫 문제 자동 출제
+        self.next_quiz()
+
+    # ==========================================
+    # 6. 퀴즈 내부 비즈니스 로직
+    # ==========================================
+    def next_quiz(self):
+        self.entry_quiz_ans.delete(0, 'end')
+        self.lbl_quiz_feedback.configure(text="")
+        
+        if not self.voca_dict:
+            self.lbl_question.configure(text="⚠️ 등록된 단어가 없습니다!\n단어장 관리 메뉴에서 단어를 먼저 추가해 주세요.")
+            self.entry_quiz_ans.configure(state="disabled")
+            self.btn_quiz_check.configure(state="disabled")
+            self.btn_quiz_next.configure(state="disabled")
+            return
+        
+        self.entry_quiz_ans.configure(state="normal")
+        self.btn_quiz_check.configure(state="normal")
+        self.btn_quiz_next.configure(state="normal")
+
+        # 무작위로 하나의 단어 선정
+        random_eng = random.choice(list(self.voca_dict.keys()))
+        self.quiz_correct_answer = self.voca_dict[random_eng] # 한글 뜻 정답 저장
+
+        # 문제 판넬에 영어 단어 출제 + AI 원어민 발음 자동 재생!
+        self.lbl_question.configure(text=f"Q. 다음 단어의 뜻은 무엇일까요?\n\n[  {random_eng}  ]")
+        self.speak_word(random_eng)
+
+    def check_quiz_answer(self):
+        user_ans = self.entry_quiz_ans.get().strip()
+        
+        if user_ans == "":
+            self.lbl_quiz_feedback.configure(text="⚠️ 정답을 입력해 주세요!", text_color="#eab308")
+            return
+
+        # 사용자가 입력한 정답이 진짜 뜻에 포함되어 있거나 일치하는지 판별
+        if user_ans in self.quiz_correct_answer or self.quiz_correct_answer in user_ans:
+            self.lbl_quiz_feedback.configure(text=f"⭕ 정답입니다!\n(저장된 뜻: {self.quiz_correct_answer})", text_color="#34d399")
+        else:
+            self.lbl_quiz_feedback.configure(text=f"❌ 틀렸습니다! 다시 시도해 보세요.\n(힌트가 필요하면 다음 문제로)", text_color="#f87171")
+
+    # ==========================================
+    # 7. 기본 백엔드 로직 및 기존 연동용 함수들
+    # ==========================================
+    def load_data(self):
+        if os.path.exists(FILE_NAME):
+            with open(FILE_NAME, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return {}
+
+    def save_data(self):
+        with open(FILE_NAME, "w", encoding="utf-8") as f:
+            json.dump(self.voca_dict, f, ensure_ascii=False, indent=4)
+
+    def handle_submit(self):
+        eng = self.entry_eng.get().strip()
+        kor = self.entry_kor.get().strip()
+        if eng == "" or kor == "":
+            self.status_label.configure(text="⚠️ 빈칸을 모두 입력해주세요.", text_color="#f87171")
+            return
+
+        if self.editing_target:
+            if self.editing_target != eng:
+                del self.voca_dict[self.editing_target]
+            self.voca_dict[eng] = kor
+            self.status_label.configure(text=f"✏️ '{eng}' 수정 완료!", text_color="#38bdf8")
+            self.cancel_edit()
+        else:
+            self.voca_dict[eng] = kor
+            self.status_label.configure(text=f"🎉 '{eng}' 저장 완료!", text_color="#34d399")
+            self.entry_eng.delete(0, 'end')
+            self.entry_kor.delete(0, 'end')
+
+        self.save_data()
+        self.entry_search.delete(0, 'end')
+        self.update_word_list()
+
+    def start_edit(self, eng, kor):
+        self.editing_target = eng
+        self.entry_eng.delete(0, 'end')
+        self.entry_eng.insert(0, eng)
+        self.entry_kor.delete(0, 'end')
+        self.entry_kor.insert(0, kor)
+        self.btn_submit.configure(text="수정완료", fg_color="#eab308", hover_color="#ca8a04")
+        self.btn_cancel.pack(side="left", padx=5, pady=10)
+        self.status_label.configure(text="📝 단어 수정 중...", text_color="#eab308")
+
+    def cancel_edit(self):
+        self.editing_target = None
+        self.entry_eng.delete(0, 'end')
+        self.entry_kor.delete(0, 'end')
+        self.btn_submit.configure(text="추가하기", fg_color=ctk.ThemeManager.theme["CTkButton"]["fg_color"])
+        self.btn_cancel.pack_forget()
+        self.status_label.configure(text="")
+
+    def delete_word(self, eng):
+        if eng in self.voca_dict:
+            del self.voca_dict[eng]
+            self.save_data()
+            self.status_label.configure(text=f"🗑️ '{eng}' 삭제 완료.", text_color="#f87171")
+            if self.editing_target == eng:
+                self.cancel_edit()
+            self.update_word_list()
+
+    def speak_word(self, text):
+        try:
+            tts = gTTS(text=text, lang='en')
+            temp_file = os.path.join(BASE_DIR, "temp_voca.mp3")
+            tts.save(temp_file)
+            pygame.mixer.music.unload()
+            pygame.mixer.music.load(temp_file)
+            pygame.mixer.music.play()
+        except:
+            pass
+
+    def filter_words(self, event):
+        search_keyword = self.entry_search.get().strip().lower()
+        for widget in self.list_frame.winfo_children():
+            widget.destroy()
+        for eng, kor in self.voca_dict.items():
+            if search_keyword in eng.lower() or search_keyword in kor.lower():
+                self.create_word_row(eng, kor)
+
+    def create_word_row(self, eng, kor):
+        item_frame = ctk.CTkFrame(self.list_frame, fg_color="transparent")
+        item_frame.pack(fill="x", padx=10, pady=5)
+        
+        word_label = ctk.CTkLabel(item_frame, text=f"📖  {eng}  :  {kor}", font=ctk.CTkFont(size=16), anchor="w")
+        word_label.pack(side="left", fill="x", expand=True, padx=10)
+        
+        btn_speak = ctk.CTkButton(item_frame, text="🔊 발음", width=65, height=26, fg_color="#10b981", hover_color="#059669",
+                                  command=lambda e=eng: self.speak_word(e))
+        btn_speak.pack(side="left", padx=5)
+
+        btn_edit = ctk.CTkButton(item_frame, text="수정", width=50, height=26, fg_color="#3b82f6", hover_color="#2563eb",
+                                 command=lambda e=eng, k=kor: self.start_edit(e, k))
+        btn_edit.pack(side="left", padx=5)
+        
+        btn_del = ctk.CTkButton(item_frame, text="삭제", width=50, height=26, fg_color="#ef4444", hover_color="#dc2626",
+                               command=lambda e=eng: self.delete_word(e))
+        btn_del.pack(side="left", padx=5)
+
+    def update_word_list(self):
+        for widget in self.list_frame.winfo_children():
+            widget.destroy()
+        for eng, kor in self.voca_dict.items():
+            self.create_word_row(eng, kor)
+
+if __name__ == "__main__":
+    app = VocaApp()
+    app.mainloop()
