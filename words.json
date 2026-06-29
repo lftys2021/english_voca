@@ -1,5 +1,257 @@
 {
-    "apple": "사과",
-    "banana": "바나나",
-    "cat": "고양이"
+    "banana": {
+        "meaning": "바나나",
+        "example_eng": "He likes to eat a banana after working out.",
+        "example_kor": "그는 운동 후에 바나나를 먹는 것을 좋아한다."
+    },
+    "computer": {
+        "meaning": "컴퓨터",
+        "example_eng": "I use my computer for coding and writing articles.",
+        "example_kor": "나는 코딩과 글쓰기를 위해 컴퓨터를 사용한다."
+    },
+    "python": {
+        "meaning": "파이썬",
+        "example_eng": "Python is a powerful programming language.",
+        "example_kor": "파이썬은 강력한 프로그래밍 언어이다."
+    },
+    "apple": {
+        "meaning": "사과",
+        "example_eng": "I ate a fresh apple this morning.",
+        "example_kor": "나는 오늘 아침에 신선한 사과를 먹었다."
+    },
+    "cat": {
+        "meaning": "고양이",
+        "example_eng": "The cat is sleeping on the warm sofa.",
+        "example_kor": "고양이가 따뜻한 소파 위에서 잠을 자고 있다."
+    },
+    "dog": {
+        "meaning": "개",
+        "example_eng": "She walks her dog in the park every evening.",
+        "example_kor": "그녀는 매일 저녁 공원에서 개를 산책시킨다."
+    },
+    "house": {
+        "meaning": "집",
+        "example_eng": "They built a beautiful house near the river.",
+        "example_kor": "그들은 강 근처에 아름다운 집을 지었다."
+    },
+    "car": {
+        "meaning": "자동차",
+        "example_eng": "My father bought a new electric car last week.",
+        "example_kor": "우리 아버지는 지난주에 새 전기차를 사셨다."
+    },
+    "book": {
+        "meaning": "책",
+        "example_eng": "Reading a book before bed helps me relax.",
+        "example_kor": "자기 전에 책을 읽는 것은 내가 휴식을 취하도록 도와준다."
+    },
+    "phone": {
+        "meaning": "전화기",
+        "example_eng": "Don't look at your phone while driving.",
+        "example_kor": "운전 중에는 스마트폰을 보지 마세요."
+    },
+    "water": {
+        "meaning": "물",
+        "example_eng": "You should drink plenty of water every day.",
+        "example_kor": "여러분은 매일 충분한 양의 물을 마셔야 합니다."
+    },
+    "friend": {
+        "meaning": "친구",
+        "example_eng": "A true friend will always support you.",
+        "example_kor": "진정한 친구는 항상 당신을 지지해 줄 것이다."
+    },
+    "family": {
+        "meaning": "가족",
+        "example_eng": "We had a great dinner with our family.",
+        "example_kor": "우리는 가족과 함께 훌륭한 저녁 식사를 했다."
+    },
+    "school": {
+        "meaning": "학교",
+        "example_eng": "Students learn various subjects at school.",
+        "example_kor": "학생들은 학교에서 다양한 과목을 배운다."
+    },
+    "teacher": {
+        "meaning": "선생님",
+        "example_eng": "Our English teacher explains grammar very clearly.",
+        "example_kor": "우리 영어 선생님은 문법을 매우 명확하게 설명해 주신다."
+    },
+    "student": {
+        "meaning": "학생",
+        "example_eng": "The university student is preparing for the exam.",
+        "example_kor": "그 대학생은 시험을 준비하고 있다."
+    },
+    "coffee": {
+        "meaning": "커피",
+        "example_eng": "I can't start my day without a cup of coffee.",
+        "example_kor": "나는 커피 한 잔 없이는 하루를 시작할 수 없다."
+    },
+    "breakfast": {
+        "meaning": "아침식사",
+        "example_eng": "Skipping breakfast can make you tired during the day.",
+        "example_kor": "아침 식사를 거르면 낮 동안 피곤해질 수 있다."
+    },
+    "lunch": {
+        "meaning": "점심식사",
+        "example_eng": "Let's meet at the restaurant for lunch.",
+        "example_kor": "점심 식사를 위해 식당에서 만납시다."
+    },
+    "dinner": {
+        "meaning": "저녁식사",
+        "example_eng": "She cooked a delicious dinner for her guests.",
+        "example_kor": "그녀는 손님들을 위해 맛있는 저녁 식사를 요리했다."
+    },
+    "time": {
+        "meaning": "시간",
+        "example_eng": "Time flies when you are having fun.",
+        "example_kor": "즐거운 시간을 보낼 때는 시간이 화살처럼 흘러간다."
+    },
+    "money": {
+        "meaning": "돈",
+        "example_eng": "Money cannot buy happiness",
+        "example_kor": "but it helps."
+    },
+    "job": {
+        "meaning": "직업",
+        "example_eng": "He is looking for a job in the software industry.",
+        "example_kor": "그는 소프트웨어 업계에서 일자리를 찾고 있다."
+    },
+    "office": {
+        "meaning": "사무실",
+        "example_eng": "Our office is located in the center of Seoul.",
+        "example_kor": "우리 사무실은 서울 중심부에 위치해 있다."
+    },
+    "desk": {
+        "meaning": "책상",
+        "example_eng": "There are many papers scattered on his desk.",
+        "example_kor": "그의 책상 위에 많은 서류들이 흩어져 있다."
+    },
+    "chair": {
+        "meaning": "의자",
+        "example_eng": "Please take a seat on this comfortable chair.",
+        "example_kor": "이 편안한 의자에 앉으세요."
+    },
+    "window": {
+        "meaning": "창문",
+        "example_eng": "Could you please open the window for some fresh air?",
+        "example_kor": "신선한 공기를 위해 창문을 좀 열어주시겠어요?"
+    },
+    "door": {
+        "meaning": "문",
+        "example_eng": "Remember to lock the door when you leave.",
+        "example_kor": "나갈 때 문을 잠그는 것을 기억하세요."
+    },
+    "city": {
+        "meaning": "도시",
+        "example_eng": "New York is one of the busiest cities in the world.",
+        "example_kor": "뉴욕은 세계에서 가장 바쁜 도시 중 하나이다."
+    },
+    "country": {
+        "meaning": "나라",
+        "example_eng": "I want to travel to a foreign country this summer.",
+        "example_kor": "나는 이번 여름에 외국으로 여행을 가고 싶다."
+    },
+    "music": {
+        "meaning": "음악",
+        "example_eng": "Listening to classical music helps me study.",
+        "example_kor": "클래식 음악을 듣는 것은 내가 공부하는 데 도움이 된다."
+    },
+    "movie": {
+        "meaning": "영화",
+        "example_eng": "We watched an exciting action movie last night.",
+        "example_kor": "우리는 어젯밤에 흥미진진한 액션 영화를 보았다."
+    },
+    "game": {
+        "meaning": "게임",
+        "example_eng": "Playing video games is a popular hobby among teenagers.",
+        "example_kor": "비디오 게임을 하는 것은 10대들 사이에서 인기 있는 취미이다."
+    },
+    "sport": {
+        "meaning": "스포츠",
+        "example_eng": "Soccer is the most popular sport in the world.",
+        "example_kor": "축구는 세계에서 가장 인기 있는 스포츠이다."
+    },
+    "health": {
+        "meaning": "건강",
+        "example_eng": "Regular exercise is essential for maintaining good health.",
+        "example_kor": "규칙적인 운동은 좋은 건강을 유지하는 데 필수적이다."
+    },
+    "doctor": {
+        "meaning": "의사",
+        "example_eng": "You should see a doctor if your fever doesn't go down.",
+        "example_kor": "열이 내리지 않으면 의사의 진찰을 받아야 합니다."
+    },
+    "hospital": {
+        "meaning": "병원",
+        "example_eng": "The injured man was taken to the nearest hospital.",
+        "example_kor": "부상당한 남자는 가장 가까운 병원으로 이송되었다."
+    },
+    "weather": {
+        "meaning": "날씨",
+        "example_eng": "The weather is perfect for a picnic today.",
+        "example_kor": "오늘 날씨는 소풍 가기에 완벽하다."
+    },
+    "sun": {
+        "meaning": "태양",
+        "example_eng": "The sun rises in the east and sets in the west.",
+        "example_kor": "태양은 동쪽에서 떠서 서쪽으로 진다."
+    },
+    "moon": {
+        "meaning": "달",
+        "example_eng": "The full moon looks beautiful tonight.",
+        "example_kor": "오늘 밤은 보름달이 아름답게 보인다."
+    },
+    "rain": {
+        "meaning": "비",
+        "example_eng": "We couldn't go out because of the heavy rain.",
+        "example_kor": "우리는 폭우 때문에 밖에 나갈 수 없었다."
+    },
+    "snow": {
+        "meaning": "눈",
+        "example_eng": "Children love to play in the fresh snow.",
+        "example_kor": "아이들은 새로 내린 눈 속에서 노는 것을 좋아한다."
+    },
+    "tree": {
+        "meaning": "나무",
+        "example_eng": "Birds are singing on the tall oak tree.",
+        "example_kor": "새들이 높은 오크 나무 위에서 노래하고 있다."
+    },
+    "flower": {
+        "meaning": "꽃",
+        "example_eng": "Spring is the season when flowers bloom.",
+        "example_kor": "봄은 꽃이 피는 계절이다."
+    },
+    "sea": {
+        "meaning": "바다",
+        "example_eng": "They enjoyed swimming in the deep blue sea.",
+        "example_kor": "그들은 깊고 푸른 바다에서 수영하는 것을 즐겼다."
+    },
+    "river": {
+        "meaning": "강",
+        "example_eng": "The river flows through the heart of the valley.",
+        "example_kor": "그 강은 계곡의 중심부를 가로질러 흐른다."
+    },
+    "mountain": {
+        "meaning": "산",
+        "example_eng": "Hiking up the mountain is challenging but rewarding.",
+        "example_kor": "산을 등반하는 것은 힘들지만 보람차다."
+    },
+    "sky": {
+        "meaning": "하늘",
+        "example_eng": "The sky is clear and bright without any clouds.",
+        "example_kor": "하늘은 구름 한 점 없이 맑고 밝다."
+    },
+    "star": {
+        "meaning": "별",
+        "example_eng": "We can see thousands of stars in the countryside.",
+        "example_kor": "시골에서는 수천 개의 별을 볼 수 있다."
+    },
+    "air": {
+        "meaning": "공기",
+        "example_eng": "We need clean air to breathe and stay healthy.",
+        "example_kor": "우리는 숨을 쉬고 건강을 유지하기 위해 깨끗한 공기가 필요하다."
+    },
+    "food": {
+        "meaning": "음식",
+        "example_eng": "Korean food is famous for being healthy and spicy.",
+        "example_kor": "한국 음식은 건강하고 매운 것으로 유명하다."
+    }
 }

@@ -1,132 +1,95 @@
-import json
-import os
+import customtkinter as ctk
+from data_manager import VocaDataManager
+from screens import ListPage, QuizPage, TestPage
 
-# 1. 현재 실행 중인 main.py 파일의 절대 경로를 구합니다.
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
-# 2. 그 폴더 경로 뒤에 "words.json"을 안전하게 결합합니다.
-FILE_NAME = os.path.join(BASE_DIR, "words.json")
+class VocaApp(ctk.CTk):
+    def __init__(self):
+        super().__init__()
 
-# 1. 파일에서 단어 데이터 불러오기
-def load_data():
-    # 파일이 존재하면 열어서 가져오고, 없으면 빈 딕셔너리 반환
-    if os.path.exists(FILE_NAME):
-        with open(FILE_NAME, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {}
+        # 백엔드 데이터 엔진 초기화
+        self.db = VocaDataManager()
+        self.editing_target = None 
 
-# 2. 파일에 단어 데이터 저장하기
-def save_data(data):
-    with open(FILE_NAME, "w", encoding="utf-8") as f:
-        # ensure_ascii=False를 해야 한글이 깨지지 않고 잘 저장됩니다.
-        json.dump(data, f, ensure_ascii=False, indent=4)
+        # 윈도우 창 설정
+        self.title("My English Vocabulary App - Modular Edition")
+        self.geometry("1150x700")
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
-
-def main():
-    # 단어를 저장할 빈 딕셔너리 생성
-    voca_dict = {}
-
-    while True:
-        print("\n--- 나만의 영어 단어장 ---")
-        print("1. 단어 등록")
-        print("2. 전체 단어 보기")
-        print("3. 단어 수정 🛠️")
-        print("4. 단어 삭제 🛠️")
-        print("5. 미니 퀴즈 🛠️")
-        print("6. 종료")
+        # ==========================================
+        # 사이드바 레이아웃 구역
+        # ==========================================
+        self.sidebar_frame = ctk.CTkFrame(self, width=200, corner_radius=0)
+        self.sidebar_frame.grid(row=0, column=0, sticky="nsew")
         
-        menu = input("원하는 메뉴 번호를 입력하세요: ")
-        
-        if menu == "1":
-            eng = input("영어 단어를 입력하세요: ").strip()
-            kor = input("한국어 뜻을 입력하세요: ").strip()
+        ctk.CTkLabel(self.sidebar_frame, text="VOCA APP v3.5", font=ctk.CTkFont(size=22, weight="bold")).pack(pady=30, padx=20)
 
-            # 딕셔너리에 추가 후 파일에 바로 저장
-            voca_dict[eng] = kor
-            save_data(voca_dict)
-            print(f"🎉 '{eng}' 단어가 저장되었습니다.")
+        self.btn_menu_list = ctk.CTkButton(self.sidebar_frame, text="📖 단어 및 예문 관리", font=ctk.CTkFont(size=15), fg_color="transparent", text_color="#f8fafc", hover_color="#1e293b", command=self.show_list_page, anchor="w", height=40)
+        self.btn_menu_list.pack(fill="x", padx=10, pady=3)
 
-        elif menu == "2":
-            print("\n=== 등록된 단어 목록 ===")
-            if not voca_dict:
-                print("등록된 단어가 없습니다.")
+        self.btn_menu_quiz = ctk.CTkButton(self.sidebar_frame, text="🧩 미니 연습 퀴즈", font=ctk.CTkFont(size=15), fg_color="transparent", text_color="#f8fafc", hover_color="#1e293b", command=self.show_quiz_page, anchor="w", height=40)
+        self.btn_menu_quiz.pack(fill="x", padx=10, pady=3)
+
+        self.btn_menu_test = ctk.CTkButton(self.sidebar_frame, text="💯 100문제 테스트", font=ctk.CTkFont(size=15), fg_color="transparent", text_color="#f8fafc", hover_color="#1e293b", command=self.show_test_page, anchor="w", height=40)
+        self.btn_menu_test.pack(fill="x", padx=10, pady=3)
+
+        ctk.CTkFrame(self.sidebar_frame, height=2, fg_color="#334155").pack(fill="x", padx=15, pady=20)
+        ctk.CTkButton(self.sidebar_frame, text="📁 CSV 단어 가져오기", font=ctk.CTkFont(size=14), fg_color="#0284c7", hover_color="#0369a1", command=self.trigger_csv_import).pack(fill="x", padx=15, pady=10)
+
+        # ==========================================
+        # 메인 콘텐츠 컨테이너 구역
+        # ==========================================
+        self.container = ctk.CTkFrame(self, fg_color="transparent")
+        self.container.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
+        self.container.grid_rowconfigure(0, weight=1)
+        self.container.grid_columnconfigure(0, weight=1)
+
+        # 자식 화면 객체들을 컴포넌트 단위로 생성
+        self.list_page = ListPage(self.container, self)
+        self.quiz_page = QuizPage(self.container, self)
+        self.test_page = TestPage(self.container, self)
+
+        # 기본 페이지 활성화
+        self.show_list_page()
+
+    def show_list_page(self):
+        self.quiz_page.grid_forget()
+        self.test_page.grid_forget()
+        self.list_page.grid(row=0, column=0, sticky="nsew")
+        self.list_page.update_word_list()
+        self._update_menu_styles(self.btn_menu_list)
+
+    def show_quiz_page(self):
+        self.list_page.grid_forget()
+        self.test_page.grid_forget()
+        self.quiz_page.grid(row=0, column=0, sticky="nsew")
+        self.quiz_page.next_quiz()
+        self._update_menu_styles(self.btn_menu_quiz)
+
+    def show_test_page(self):
+        self.list_page.grid_forget()
+        self.quiz_page.grid_forget()
+        self.test_page.grid(row=0, column=0, sticky="nsew")
+        self.test_page.reset_test_ui()
+        self._update_menu_styles(self.btn_menu_test)
+
+    def _update_menu_styles(self, active_btn):
+        for btn in [self.btn_menu_list, self.btn_menu_quiz, self.btn_menu_test]:
+            if btn == active_btn:
+                btn.configure(fg_color="#1e293b", text_color="#38bdf8")
             else:
-                for eng, kor in voca_dict.items():
-                    print(f"📖 {eng} : {kor}")
-        elif menu == "3":
-            print("\n=== 단어 수정 ===")
-            if not voca_dict:
-                print("수정할 단어가 없습니다.")
-                continue
+                btn.configure(fg_color="transparent", text_color="#f8fafc")
 
-            target = input("수정할 영어 단어를 입력하세요: ").strip()
-
-            # 입력한 단어가 단어장에 존재하는지 확인
-            if target in voca_dict:
-                print(f"선택된 단어: {target} (현재 뜻: {voca_dict[target]})")
-                sub_menu = input("[1] 단어 수정 [2] 취소: ")
-
-                if sub_menu == "1":
-                    new_kor = input("새로운 한국어 뜻을 입력하세요: ").strip()
-                    voca_dict[target] = new_kor  # 덮어쓰기로 수정
-                    save_data(voca_dict)
-                    print(f"✏️ '{target}'의 뜻이 '{new_kor}'로 수정되었습니다.")
-
-                else:
-                    print("작업이 취소되었습니다.")
-
-            else:
-                print("❌ 단어장에 존재하지 않는 단어입니다.")
-
-        elif menu == "4":
-            print("\n=== 단어 삭제 ===")
-            if not voca_dict:
-                print("삭제할 단어가 없습니다.")
-                continue
-            
-            target = input("삭제할 영어 단어를 입력하세요: ").strip()
-
-            # 입력한 단어가 단어장에 존재하는지 확인
-            if target in voca_dict:
-                print(f"선택된 단어: {target} (현재 뜻: {voca_dict[target]})")
-                sub_menu = input("[1] 단어 삭제 [2] 취소: ")
-
-                if sub_menu == "1":
-                    del voca_dict[target]  # 딕셔너리에서 삭제
-                    save_data(voca_dict)
-                    print(f"🗑️ '{target}' 단어가 삭제되었습니다.")
-
-                else:
-                    print("작업이 취소되었습니다.")
-
-            else:
-                print("❌ 단어장에 존재하지 않는 단어입니다.")
-
-        elif menu == "5":
-            print("프로그램을 종료합니다.")
-            break
-        elif menu == "4":
-            print("\n=== 🎯 미니 퀴즈 시작 ===")
-            # 단어장에 단어가 없으면 퀴즈를 진행할 수 없음
-            if not voca_dict:
-                print("퀴즈를 낼 단어가 없습니다. 먼저 단어를 등록해 주세요.")
-                continue
-            
-            # 딕셔너리의 키(영어 단어)들만 모아서 리스트로 변환
-            word_list = list(voca_dict.keys())
-            # 리스트에서 무작위로 하나의 단어 선택
-            quiz_word = random.choice(word_list)
-            
-            print(f"문제: '{quiz_word}'의 뜻은 무엇일까요?")
-            user_answer = input("정답 입력: ").strip()
-            
-            # 사용자가 입력한 정답과 실제 뜻 비교
-            if user_answer == voca_dict[quiz_word]:
-                print("⭕ 정답입니다! 참 잘하셨어요! 🎉")
-            else:
-                print(f"❌ 틀렸습니다. 정답은 '{voca_dict[quiz_word]}'입니다. 🥲")
-        else:
-            print("잘못된 입력입니다.")
+    def trigger_csv_import(self):
+        file_path = ctk.filedialog.askopenfilename(title="불러올 단어장 CSV 파일을 선택하세요", filetypes=[("CSV 파일", "*.csv")])
+        if file_path:
+            count = self.db.import_csv(file_path)
+            self.list_page.update_word_list()
+            self.list_page.status_label.configure(text=f"📊 CSV에서 {count}개 단어 동기화 완료!", text_color="#34d399")
 
 if __name__ == "__main__":
-    main()
+    app = VocaApp()
+    app.mainloop()
