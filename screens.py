@@ -22,8 +22,12 @@ class ListPage(ctk.CTkFrame):
         row1 = ctk.CTkFrame(self.input_frame, fg_color="transparent")
         row1.pack(fill="x", padx=10, pady=5)
         
-        self.entry_eng = ctk.CTkEntry(row1, placeholder_text="영어 단어 입력", width=200)
+        self.entry_eng = ctk.CTkEntry(row1, placeholder_text="영어 단어 입력", width=160)
         self.entry_eng.pack(side="left", padx=5, pady=5)
+        
+        # 🤖 네이버 자동 크롤링 버튼
+        self.btn_auto_crawl = ctk.CTkButton(row1, text="🤖 자동 완성", width=85, fg_color="#a855f7", hover_color="#9333ea", command=self.trigger_auto_crawl)
+        self.btn_auto_crawl.pack(side="left", padx=3, pady=5)
         
         self.entry_kor = ctk.CTkEntry(row1, placeholder_text="한국어 뜻 입력", width=200)
         self.entry_kor.pack(side="left", padx=5, pady=5)
@@ -56,6 +60,29 @@ class ListPage(ctk.CTkFrame):
         self.list_frame.grid(row=1, column=0, sticky="nsew", padx=10, pady=10)
         
         self.update_word_list()
+
+    def trigger_auto_crawl(self):
+        """네이버 사전 자동 완성 크롤링 트리거"""
+        word = self.entry_eng.get().strip()
+        if not word:
+            self.status_label.configure(text="⚠️ 단어를 먼저 입력하세요.", text_color="#f87171")
+            return
+            
+        self.status_label.configure(text="🔍 네이버 사전 탐색 중...", text_color="#eab308")
+        self.app.update()
+        
+        result = self.db.crawl_naver_dict(word)
+        
+        if result:
+            self.entry_kor.delete(0, 'end')
+            self.entry_kor.insert(0, result["meaning"])
+            self.entry_ex_eng.delete(0, 'end')
+            self.entry_ex_eng.insert(0, result["example_eng"])
+            self.entry_ex_kor.delete(0, 'end')
+            self.entry_ex_kor.insert(0, result["example_kor"])
+            self.status_label.configure(text="✅ 자동 완성 성공!", text_color="#34d399")
+        else:
+            self.status_label.configure(text="❌ 단어를 찾을 수 없습니다.", text_color="#f87171")
 
     def handle_submit(self):
         eng, kor = self.entry_eng.get().strip(), self.entry_kor.get().strip()
@@ -154,6 +181,7 @@ class QuizPage(ctk.CTkFrame):
         self.lbl_question = ctk.CTkLabel(self.quiz_card, text="문제를 불러오는 중입니다...", font=ctk.CTkFont(size=22, weight="bold"), text_color="#38bdf8")
         self.lbl_question.pack(pady=30)
 
+        # 🛠️ slant="italic"으로 에러 수정 완료!
         self.lbl_quiz_hint = ctk.CTkLabel(self.quiz_card, text="", font=ctk.CTkFont(size=16, slant="italic"), text_color="#94a3b8")
         self.lbl_quiz_hint.pack(pady=5)
 
@@ -221,6 +249,7 @@ class TestPage(ctk.CTkFrame):
         self.lbl_test_question = ctk.CTkLabel(self.test_card, text="시작 버튼을 누르면 시험이 시작됩니다.", font=ctk.CTkFont(size=24, weight="bold"), text_color="#38bdf8")
         self.lbl_test_question.pack(pady=30)
 
+        # 🛠️ slant="italic"으로 에러 수정 완료!
         self.lbl_test_hint = ctk.CTkLabel(self.test_card, text="", font=ctk.CTkFont(size=15, slant="italic"), text_color="#94a3b8")
         self.lbl_test_hint.pack(pady=5)
 
